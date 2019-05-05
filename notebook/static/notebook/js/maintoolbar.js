@@ -37,6 +37,10 @@ define([
             'save-notbook'
           ],
           [
+            ['jupyter-notebook:show-rank'],
+            'show-rank'
+          ],
+          [
             ['jupyter-notebook:insert-cell-below'],
             'insert_above_below'],
           [
@@ -75,6 +79,7 @@ define([
             .attr('id','cell_type')
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value','code').text(i18n.msg._('Code')))
+            .append($('<option/>').attr('value','qcode').text(i18n.msg._('QCode')))
             .append($('<option/>').attr('value','markdown').text(i18n.msg._('Markdown')))
             .append($('<option/>').attr('value','raw').text(i18n.msg._('Raw NBConvert')))
             .append($('<option/>').attr('value','heading').text(i18n.msg._('Heading')))
@@ -104,6 +109,9 @@ define([
             switch (cell_type) {
             case 'code':
                 that.notebook.cells_to_code();
+                break;
+            case 'qcode':
+                that.notebook.cells_to_qcode();
                 break;
             case 'markdown':
                 that.notebook.cells_to_markdown();

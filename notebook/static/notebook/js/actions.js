@@ -862,6 +862,16 @@ define([
                 return false;
             }
         },
+        'show-rank':{
+            cmd: i18n.msg._("show other student's grade"),
+            help: i18n.msg._("Show Other Student's Rank"),
+            icon: 'fa-trophy',
+            handler : function (env, event) {
+                // TODO: we need add this feature in the future
+
+            }
+
+        }
     };
 
     // private stuff that prepend `jupyter-notebook:` to actions names
@@ -875,41 +885,35 @@ define([
         return source[subkey].handler;
     };
 
-    // Will actually generate/register all the Jupyter actions
-    var fun = function(){
-        var final_actions = {};
+
+    var gen_actions = function (final_actions, actions) {
         var k;
-        for(k in _actions){
-            if(_actions.hasOwnProperty(k)){
+        for(k in actions){
+            if(actions.hasOwnProperty(k)){
                 // Js closure are function level not block level need to wrap in a IIFE
                 // and append jupyter-notebook: to event name these things do intercept event so are wrapped
-                // in a function that return false.
-                var handler = _prepare_handler(final_actions, k, _actions);
-                (function(key, handler){
-                    final_actions['jupyter-notebook:'+key].handler = function(env, event){
+                // in a function that return fasle;
+                var handler = _prepare_handler(final_actions, k, actions);
+                (function (key, handler) {
+                    final_actions['jupyter-notebook:'+key].handler = function (env, event) {
                         handler(env);
                         if(event){
                             event.preventDefault();
                         }
                         return false;
-                    };
-                })(k, handler);
+                    }
+                })(k,handler);
+
             }
         }
+        return final_actions;
+    }
 
-        for(k in custom_ignore){
-            // Js closure are function level not block level need to wrap in a IIFE
-            // same as above, but decide for themselves whether or not they intercept events.
-            if(custom_ignore.hasOwnProperty(k)){
-                handler = _prepare_handler(final_actions, k, custom_ignore);
-                (function(key, handler){
-                    final_actions['jupyter-notebook:'+key].handler = function(env, event){
-                        return handler(env, event);
-                    };
-                })(k, handler);
-            }
-        }
-
+    // Will actually generate/register all the Jupyter actions
+    var fun = function(){
+        var final_actions = {};
+        gen_actions(final_actions, _actions);
+        gen_actions(final_actions,custom_ignore);
         return final_actions;
     };
     ActionHandler.prototype._actions = fun();

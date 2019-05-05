@@ -98,7 +98,7 @@ requirejs([
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
-
+    //console.log(common_options)
     var config_section = new configmod.ConfigSection('notebook', common_options);
     config_section.load();
     var common_config = new configmod.ConfigSection('common', common_options);

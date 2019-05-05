@@ -295,6 +295,44 @@ data-notebook-path="{{notebook_path | urlencode}}"
                         </li>
                     </ul>
                 </li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans %}Model{% endtrans %}</a>
+                    <ul id="model_menu" class="dropdown-menu">
+                        <!--
+                        <li id="int_model"
+                            title="{% trans %}Send Keyboard Interrupt (CTRL-C) to the Model{% endtrans %}">
+                            <a href="#">{% trans %}Interrupt{% endtrans %}</a>
+                        </li>
+                        <li id="restart_model"
+                            title="{% trans %}Restart the Model{% endtrans %}">
+                            <a href="#">{% trans %}Restart{% endtrans %}</a>
+                        </li>
+
+                        <li id="restart_clear_output"
+                            title="{% trans %}Restart the Kernel and clear all output{% endtrans %}">
+                            <a href="#">{% trans %}Restart &amp; Clear Output{% endtrans %}</a>
+                        </li>
+                        <li id="restart_run_all"
+                            title="{% trans %}Restart the Kernel and re-run the notebook{% endtrans %}">
+                            <a href="#">{% trans %}Restart &amp; Run All{% endtrans %}</a>
+                        </li>
+                        -->
+                        <li id="reconnect_model"
+                            title="{% trans %}Reconnect to the Model{% endtrans %}">
+                            <a href="#">{% trans %}Reconnect{% endtrans %}</a>
+                        </li>
+                        <!--
+                        <li id="shutdown_kernel"
+                            title="Shutdown the Kernel">
+                            <a href="#">{% trans %}Shutdown{% endtrans %}</a>
+                        </li>
+                        -->
+                        <li class="divider"></li>
+                        <li id="menu-change-model" class="dropdown-submenu">
+                            <a href="#">{% trans %}Change models{% endtrans %}</a>
+                            <ul class="dropdown-menu" id="menu-change-model-submenu"></ul>
+                        </li>
+                    </ul>
+                </li>
                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans %}Help{% endtrans %}</a>
                     <ul  id="help_menu" class="dropdown-menu">
                         {% block help %}

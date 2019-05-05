@@ -38,7 +38,6 @@ define([
         }
         this._display_id_targets = {};
         this.create_elements();
-        this.style();
         this.bind_events();
         this.class_config = new configmod.ConfigWithDefaults(this.config,
                                         OutputArea.config_defaults, 'OutputArea');
@@ -230,11 +229,15 @@ define([
 
     OutputArea.prototype.handle_output = function (msg) {
         var json = {};
+        console.log(msg)
         var msg_type = json.output_type = msg.header.msg_type;
         var content = msg.content;
         switch(msg_type) {
         case "stream" :
-            json.text = content.text;
+            if(content.infer_result===undefined)
+                json.text = content.text
+            else
+                json.text = content.text+content.infer_result;
             json.name = content.name;
             break;
         case "execute_result":

@@ -10,11 +10,12 @@ define([
     'base/js/namespace',
     'underscore',
     'base/js/utils',
-    'base/js/i18n',
     'base/js/dialog',
+    'base/js/i18n',
     './cell',
     './textcell',
     './codecell',
+    './qcodecell',
     'moment',
     'services/config',
     'services/sessions/session',
@@ -38,11 +39,12 @@ define([
     IPython,
     _,
     utils,
-    i18n,
     dialog,
+    i18n,
     cellmod,
     textcell,
     codecell,
+    qcodecell,
     moment,
     configmod,
     session,
@@ -1309,6 +1311,10 @@ define([
                 cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
                 break;
+            case 'qcode':
+                cell = new qcodecell.QCodeCell(this.kernel, null, cell_options);
+                cell.set_input_prompt();
+                break;
             case 'markdown':
                 cell = new textcell.MarkdownCell(cell_options);
                 break;
@@ -1462,6 +1468,54 @@ define([
         }
     };
 
+    /**
+     * Turn one or more cells into question code.
+     *
+     * @param {Array} indices - cell indices to convert
+     */
+    Notebook.prototype.cells_to_qcode = function (indices) {
+        if (indices === undefined){
+            indices = this.get_selected_cells_indices();
+        }
+
+        for (var i=0; i < indices.length; i++){
+            this.to_qcode(indices[i]);
+        }
+    };
+
+    /**
+     * turn a cell to a question code cell
+     *
+     * @param {Array} indices - cell indices to convert
+     */
+    Notebook.prototype.to_qcode = function (index) {
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i)) {
+            var source_cell = this.get_cell(i);
+            if (!(source_cell instanceof qcodecell.QCodeCell) && source_cell.is_editable()) {
+                var target_cell = this.insert_cell_below('qcode',i);
+                var text = source_cell.get_text();
+                if (text === source_cell.placeholder) {
+                    text = '';
+                }
+                //metadata
+                target_cell.metadata = source_cell.metadata;
+                // attachments (we transfer them so they aren't lost if the
+                // cell is turned back into markdown)
+                target_cell.attachments = source_cell.attachments;
+
+                target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
+                source_cell.element.remove();
+                this.select(i);
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
+                this.set_dirty(true);
+            }
+        }
+    }
     /**
      * Turn one or more cells into Markdown.
      *
@@ -2611,6 +2665,7 @@ define([
      */
     Notebook.prototype.fromJSON = function (data) {
 
+        console.log(data);
         var content = data.content;
         var ncells = this.ncells();
         var i;
@@ -2744,6 +2799,7 @@ define([
             type : "notebook",
             content : this.toJSON()
         };
+        console.log(model);
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
 
@@ -3106,6 +3162,7 @@ define([
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
         this.notebook_path = notebook_path;
+        console.log("file path: "+this.notebook_path);
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
         this.contents.get(notebook_path, {type: 'notebook'}).then(

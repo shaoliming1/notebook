@@ -348,7 +348,9 @@ class ContentsManager(LoggingConfigurable):
     def validate_notebook_model(self, model):
         """Add failed-validation message to model"""
         try:
-            validate_nb(model['content'])
+            # TODO: we need add the qcode cell type in the furture
+            # validate_nb(model['content'])
+            self.log.info("validate_notebook_model")
         except ValidationError as e:
             model['message'] = u'Notebook validation failed: {}:\n{}'.format(
                 e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),

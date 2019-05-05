@@ -86,6 +86,7 @@ define(['jquery','base/js/i18n'], function($, i18n) {
                 var action_name;
                 var action;
                 if(typeof(el) === 'string'){
+                    console.log(el);
                     action = that.actions.get(el);
                     action_name = el;
                 } else if (el.action) {
