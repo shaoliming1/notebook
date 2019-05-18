@@ -2799,7 +2799,7 @@ define([
             type : "notebook",
             content : this.toJSON()
         };
-        console.log(model);
+        //console.log(model);
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
 
@@ -2871,6 +2871,103 @@ define([
         } else {
             return _save();
         }
+    };
+
+    /** show TOP 10 **/
+    Notebook.prototype.show_rank = function(){
+        this.get_rank(10, 0).then(
+            $.proxy(this.show_rank_success, this),
+            $.proxy(this.show_rank_error, this)
+        );
+    };
+
+    Notebook.prototype.show_rank_success =function(data){
+        var tb = $("<table></table>").addClass("table").addClass("table-hover");
+        var thead =$("<thead></thead>");
+        head = [
+            i18n.msg._("Rank"),
+            i18n.msg._("Name"),
+            i18n.msg._("Score")
+        ];
+        console.log(data)
+        console.log(head)
+        var first_tr = $("<tr></tr>");
+        $.each(head,function (i, e) {
+            first_tr.append($("<th></th>").attr("scope","col").html(e));
+        });
+        thead.append(first_tr);
+        tb.append(thead);
+        var tbody = $("<tbody></tbody>");
+        for(var i = 0; i < data.length; i++ ){
+            var row = $("<tr></tr>");
+            // for(var j = 0 ;j < data[i].length; j++){
+            //     if(j==0){
+            //         row.append($("<th></th>").attr("scope","row").html(data[i][j]));
+            //     }else{
+            //         row.append($("<td></td>").html(data[i][j]));
+            //     }
+            //
+            // }
+            row.append($("<td></td>").attr("scope","row").html(data[i]["rank"]));
+            row.append($("<td></td>").attr("scope","row").html(data[i]['username']));
+            row.append($("<td></td>").attr("scope","row").html(data[i]['score']));
+
+            tbody.append(row);
+        }
+
+        tb.append(tbody);
+
+
+        dialog.modal({
+            title: i18n.msg._("Rank"),
+            body:tb,
+            default_button: "OK",
+            buttons: {
+                "OK": {
+                    class : "btn-danger",
+                    // click :function(){
+                    //     window.close();
+                    // }
+                }
+            }
+        });
+
+
+    }
+
+    Notebook.prototype.show_rank_error = function(error){
+        msg = "ERROR:\n"+ error.message;
+
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
+            title: i18n.msg._("Error showing rank"),
+            body : msg,
+            buttons : {
+                "Close": {
+                    class : 'btn-danger',
+                    click : function () {
+                        window.close();
+                    }
+                }
+              },
+              sanitize: isSanitized
+
+        });
+    }
+
+    Notebook.prototype.get_rank = function(limit, offset){
+        var settings = {
+            type : "GET",
+            dataType : "json",
+        };
+        var url = "/api/rank";
+        var params = {
+            limit:limit,
+            offset:offset
+        };
+        return utils.promising_ajax(url + '?' + $.param(params), settings);
+
     };
     
     /**

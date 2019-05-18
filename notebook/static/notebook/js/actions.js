@@ -868,7 +868,11 @@ define([
             icon: 'fa-trophy',
             handler : function (env, event) {
                 // TODO: we need add this feature in the future
-
+                env.notebook.show_rank();
+                if(event){
+                    event.preventDefault();
+                }
+                return false;
             }
 
         }

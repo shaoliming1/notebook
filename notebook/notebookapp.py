@@ -6,6 +6,8 @@
 
 from __future__ import absolute_import, print_function
 
+from sqlalchemy import create_engine
+
 import notebook
 import binascii
 import datetime
@@ -31,6 +33,8 @@ import threading
 import time
 import warnings
 import webbrowser
+
+from notebook.models import DBSession
 
 try: #PY3
     from base64 import encodebytes
@@ -313,6 +317,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('notebook.services.shutdown'))
         handlers.extend(load_handlers('notebook.services.kernels.handlers'))
         handlers.extend(load_handlers('notebook.services.kernelspecs.handlers'))
+        handlers.extend(load_handlers('notebook.services.rank.handlers'))
 
         handlers.extend(settings['contents_manager'].get_extra_handlers())
 
@@ -1667,6 +1672,11 @@ class NotebookApp(JupyterApp):
             pc = ioloop.PeriodicCallback(self.shutdown_no_activity, 60000)
             pc.start()
 
+    def init_db(self):
+        engine = create_engine("sqlite:////home/shaoliming/foo.db")
+        # Base.metadata.create_all(engine)
+        DBSession.configure(bind=engine)
+
     @catch_config_error
     def initialize(self, argv=None):
         super(NotebookApp, self).initialize(argv)
@@ -1679,6 +1689,7 @@ class NotebookApp(JupyterApp):
         self.init_webapp()
         self.init_terminals()
         self.init_signal()
+        self.init_db()
         self.init_server_extensions()
         self.init_mime_overrides()
         self.init_shutdown_no_activity()
