@@ -2900,14 +2900,6 @@ define([
         var tbody = $("<tbody></tbody>");
         for(var i = 0; i < data.length; i++ ){
             var row = $("<tr></tr>");
-            // for(var j = 0 ;j < data[i].length; j++){
-            //     if(j==0){
-            //         row.append($("<th></th>").attr("scope","row").html(data[i][j]));
-            //     }else{
-            //         row.append($("<td></td>").html(data[i][j]));
-            //     }
-            //
-            // }
             row.append($("<td></td>").attr("scope","row").html(data[i]["rank"]));
             row.append($("<td></td>").attr("scope","row").html(data[i]['username']));
             row.append($("<td></td>").attr("scope","row").html(data[i]['score']));
@@ -2945,12 +2937,9 @@ define([
             body : msg,
             buttons : {
                 "Close": {
-                    class : 'btn-danger',
-                    click : function () {
-                        window.close();
-                    }
+                    class: 'btn-danger',
                 }
-              },
+            },
               sanitize: isSanitized
 
         });

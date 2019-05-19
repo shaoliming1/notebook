@@ -4,6 +4,18 @@ from tornado import gen
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient
 from notebook.services.model.base import Session
 
+import json
+import datetime
+
+
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        # elif isinstance(obj, date):
+        #     return obj.strftime("%Y-%m-%d")
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 class HttpSession(Session):
 
@@ -23,15 +35,16 @@ class HttpSession(Session):
     @gen.coroutine
     def do_post(self, msg):
         url = "http://%s:%s/infer" % (self.ip, self.port)
-        body = json.dumps(msg)
+        body = json.dumps(msg, cls=DateEncoder)
         req = HTTPRequest(url=url,
                           method="POST",
                           headers={"Accept": "application/json"},
                           body=body
                           )
-
-        respone = yield self.http_client.fetch(request=req)
+        try:
+            respone = yield self.http_client.fetch(request=req)
+            respone_json = json.loads(respone.body)
+        except:
+            respone_json = {}
         #respone_json = json.loads(respone.body.decode('utf8', 'replace'))
-        respone_json = json.loads(respone.body)
-
-        return respone_json['infer_result']
+        return respone_json.get('infer_result')

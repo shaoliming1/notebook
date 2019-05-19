@@ -30,6 +30,7 @@ class Rank(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     score = Column(Integer)
+    question_numbers = Column(String, default="[]")
 
     user = relationship("User", back_populates="rank")
 
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     session = Session()
     # Base.metadata.create_all(engine)
     session.add(User( name="username"))
-    session.add(Question(number=4, score=5, answer="00000011111111"))
+    session.add(Question(number=4, score=5, answer="00000011111111\n"))
     session.add(Question(number=5, score=5, answer="000000111111110"))
     session.add(Rank(user_id=0, score=0))
     session.commit()

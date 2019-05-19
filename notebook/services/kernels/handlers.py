@@ -20,6 +20,7 @@ from jupyter_client.jsonutil import date_default
 from ipython_genutils.py3compat import cast_unicode
 from traitlets import Type
 
+from notebook.models import DBSession, User, Question, Rank
 from notebook.services.model.base import  Model
 from notebook.services.model.hardcodemodel import HardCodeModel
 from notebook.services.model.modelmanger import ModelManager
@@ -495,6 +496,8 @@ class MyZMQChannelsHandler(ZMQChannelsHandler):
         klass=Model,
         help="the machine learning model instance "
     )
+
+
     def initialize(self):
         self.model = ModelManager().create_model(model_id="8682a6e9-8865-47db-b37a-19101cc64cd8")
         if not self.model.is_loaded():
@@ -513,6 +516,10 @@ class MyZMQChannelsHandler(ZMQChannelsHandler):
             if m is not None:
                 msg['header']['question_number'] = m.group('number')
                 self.log.info("received a execute request for %s problems", msg['header']['question_number'])
+            if msg['content'].get('question_number'):
+                msg['header']['question_number'] = msg['content']['question_number']
+                # send the log
+                IOLoop.current().spawn_callback(self.model.infer, msg['header']['question_number'], msg)
         # self.log.info(msg)
         super(MyZMQChannelsHandler, self).on_message(json.dumps(msg))
 
@@ -526,10 +533,43 @@ class MyZMQChannelsHandler(ZMQChannelsHandler):
         if msg['parent_header']is not None:
             if msg['parent_header'].get('question_number')\
                     and msg['content'].get('text'):
-                qustion_number = msg['parent_header']['question_number']
-                res = await self.model.infer(qustion_number, msg['content']['text'].strip('\n'))
-                msg['content']['infer_result'] = json.dumps(res)
-        self.log.info(msg)
+                question_number = msg['parent_header']['question_number']
+                #res = await self.model.infer(qustion_number, msg['content']['text'].strip('\n'))
+                await self.model.infer(question_number, msg)
+                #msg['content']['infer_result'] = json.dumps(res)
+                username = msg['header']['username']
+                session = DBSession()
+                try:
+                    user = session.query(User).filter_by(name=username).one()
+                except:
+                    session.add(User(name=username))
+                    user = session.query(User).filter_by(name=username).first()
+
+                try:
+                    rank = session.query(Rank).filter_by(user_id=user.id).one()
+                except:
+                    session.add(Rank(user_id=user.id, score=0, question_numbers='[]'))
+                    rank = session.query(Rank).filter_by(user_id=user.id).first()
+
+                try:
+                    print(question_number)
+                    question_detail = session.query(Question).filter_by(number=int(question_number)).one()
+
+                except:
+                    # session.add(Rank(user_id=user.id, score=0))
+                    # question_detail = session.query(Question).filter_by(number=question_number).first()
+                    print("except")
+                    msg['content']['error'] = "the number of this question %s does't not exist" % question_number
+                finally:
+                    if not msg['content'].get('error'):
+                        question_ids = json.loads(rank.question_numbers)
+                        if str(question_detail.id) not in question_ids \
+                                and question_detail.answer == msg['content']['text']:
+                            print("add score")
+                            rank.score += question_detail.score
+                            msg['content']['success'] = "you have got %d point !" % question_detail.score
+                    session.commit()
+        print(msg)
         super(MyZMQChannelsHandler, self)._on_zmq_reply(stream, msg)
 
 

@@ -23,7 +23,8 @@ define([
     'notebook/js/celltoolbar',
     'codemirror/lib/codemirror',
     'codemirror/mode/python/python',
-    'notebook/js/codemirror-ipython'
+    'notebook/js/codemirror-ipython',
+    '../../components/bootstrap-tour/build/js/bootstrap-tour'
     ],function (
         $,
         IPython,
@@ -38,6 +39,7 @@ define([
         completer,
         celltoolbar,
         CodeMirror,
+        Tour
     ) {
     "use strict";
 
@@ -301,7 +303,85 @@ define([
         this.events.on('finished_iopub.Kernel', handleFinished);
 
 
-    }
+    };
+
+    QCodeCell.prototype.get_callbacks = function () {
+        var that = this;
+        return {
+            clear_on_done: false,
+            shell : {
+                reply : $.proxy(this._handle_execute_reply, this),
+                payload : {
+                    set_next_input : $.proxy(this._handle_set_next_input, this),
+                    page : $.proxy(this._open_with_pager, this)
+                }
+            },
+            iopub : {
+                output : function() {
+                    that.events.trigger('set_dirty.Notebook', {value: true});
+                    that.output_area.handle_output.apply(that.output_area, arguments);
+                    that.display_score.apply(that.output_area, arguments);
+
+                },
+                clear_output : function() {
+                    that.events.trigger('set_dirty.Notebook', {value: true});
+                    that.output_area.handle_clear_output.apply(that.output_area, arguments);
+                },
+            },
+            input : $.proxy(this._handle_input_request, this),
+        };
+    };
+
+    QCodeCell.prototype.display_score = function(msg){
+        //if(msg.content.score !== undefined){
+        //     var tour = new window.Tour({
+        //     steps: [
+        //     {
+        //         //element: this,
+        //         title: "Title of my step",
+        //         content: "Content of my step"
+        //     }
+        // ]});
+        //
+        // // Initialize the tour
+        // tour.init();
+        //
+        // // Start the tour
+        // tour.start();
+        //var notification = new Notification("sucess", {body:i18n.msg._("good ")})
+          // 先检查浏览器是否支持
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notification");
+        }
+        var title = 'sucess';
+        var body  ="";
+        if (msg['content'].error!==undefined)
+        {
+            title = 'fail';
+            body = msg['content']['error'];
+        }else if(msg['content'].success!==undefined){
+            body = msg['content'].success;
+        }else{
+        return;
+        }
+
+        // 检查用户是否同意接受通知
+        if (Notification.permission === "granted") {
+            // If it's okay let's create a notification
+        var notification = new Notification(title,{body:body});
+        }
+      // 否则我们需要向用户获取权限
+      else if (Notification.permission !== 'denied') {
+        Notification.requestPermission(function (permission) {
+          // 如果用户同意，就可以向他们发送通知
+          if (permission === "granted") {
+            var notification = new Notification(title, {body:body });
+          }
+        });
+      }
+
+    };
+
 
 
 

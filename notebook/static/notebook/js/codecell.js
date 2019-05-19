@@ -393,6 +393,7 @@ define([
                 output : function() { 
                     that.events.trigger('set_dirty.Notebook', {value: true});
                     that.output_area.handle_output.apply(that.output_area, arguments);
+
                 }, 
                 clear_output : function() { 
                     that.events.trigger('set_dirty.Notebook', {value: true});
@@ -402,6 +403,8 @@ define([
             input : $.proxy(this._handle_input_request, this),
         };
     };
+
+
     
     CodeCell.prototype._open_with_pager = function (payload) {
         console.log(payload)
