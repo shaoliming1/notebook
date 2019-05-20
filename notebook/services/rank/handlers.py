@@ -1,6 +1,5 @@
 import json
 
-import jsonify as jsonify
 from tornado import web
 
 from notebook.base.handlers import APIHandler
@@ -22,7 +21,7 @@ class MainRankHandler(APIHandler):
         limit = self.get_argument('limit', 10)
         session = DBSession()
         from sqlalchemy.orm import selectinload
-        res = session.query(Rank).join(User).order_by(Rank.score).offset(int(offset)).limit(int(limit)).all()
+        res = session.query(Rank).join(User).order_by(Rank.score.desc()).offset(int(offset)).limit(int(limit)).all()
         ret = list()
         i = 1
         print(res)

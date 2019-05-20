@@ -10,30 +10,22 @@ import tornado.web
 from traitlets import Integer
 from traitlets.config import Configurable, Unicode
 
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write("Hello, world")
 
     async def post(self):
         json_string = self.request.body.decode('utf8')
-        try:
-            #req = json.loads(json_string)
-            with aiofiles.open('log.txt', 'a') as f:
-                await f.write(json_string)
-        except:
-            self.set_status(400)
-            self.finish()
-            return
+
+        async with aiofiles.open('log.txt', 'a') as f:
+            await f.write(json_string+"\n")
+
         res = dict(
             infer_result="Please consider some transcendental numbers, such as pi,e"
         )
         self.set_status(201)
         self.set_header("Content-Type", "text/json")
         self.finish(json.dumps(res))
-
-
-
 
 
 class demo(Configurable):

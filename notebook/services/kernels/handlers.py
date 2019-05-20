@@ -561,13 +561,22 @@ class MyZMQChannelsHandler(ZMQChannelsHandler):
                     print("except")
                     msg['content']['error'] = "the number of this question %s does't not exist" % question_number
                 finally:
-                    if not msg['content'].get('error'):
+                    if msg['content'].get('error', '') == '':
                         question_ids = json.loads(rank.question_numbers)
+                        print(type(question_ids))
+                        print(question_ids)
                         if str(question_detail.id) not in question_ids \
                                 and question_detail.answer == msg['content']['text']:
                             print("add score")
                             rank.score += question_detail.score
+                            question_ids.append(str(question_detail.id))
+                            rank.question_numbers =json.dumps(question_ids)
                             msg['content']['success'] = "you have got %d point !" % question_detail.score
+                        elif str(question_detail.id) in question_ids:
+                            msg['content']['success'] = "%s: you've solved this problem" % user.name
+
+                        else:
+                            msg['content']['error'] = "%s :your answer is incorrect" % user.name
                     session.commit()
         print(msg)
         super(MyZMQChannelsHandler, self)._on_zmq_reply(stream, msg)
