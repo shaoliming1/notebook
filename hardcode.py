@@ -2,7 +2,6 @@
 a demo which hard code the inference result
 """
 import json
-import sys
 
 import aiofiles as aiofiles
 import tornado.ioloop
@@ -45,7 +44,6 @@ class demo(Configurable):
         ])
     def start(self):
         app = self.make_app()
-        # self.log.info("port: %s", self.port)
         app.listen(self.port)
         tornado.ioloop.IOLoop.current().start()
 
